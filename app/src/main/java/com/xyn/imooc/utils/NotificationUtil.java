@@ -56,6 +56,7 @@ public class NotificationUtil {
             PendingIntent piStop = PendingIntent.getService(mContext, 0, intentStop, 0);
             remoteViews.setOnClickPendingIntent(R.id.btStop, piStop);
 
+            remoteViews.setTextViewText(R.id.tvfileName, fileInfo.getFileName());
             notification.contentView = remoteViews;
 
             mNotificationManager.notify(fileInfo.getId(), notification);

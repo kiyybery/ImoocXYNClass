@@ -71,6 +71,9 @@ public class DownLoadService extends Service {
                             new DownLoadTask(DownLoadService.this, fileInfo, 3);
                     task.download();
                     mTasks.put(fileInfo.getId(), task);
+                    Intent intent = new Intent(DownLoadService.ACTION_START);
+                    intent.putExtra("fileInfo", fileInfo);
+                    sendBroadcast(intent);
                     break;
             }
         }

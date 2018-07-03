@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.xyn.imooc.entry.FileInfo;
 import com.xyn.imooc.service.DownLoadService;
+import com.xyn.imooc.utils.NotificationUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView mLvFile = null;
     private List<FileInfo> mFileList = null;
     private FileListAdapter mAdapter = null;
+    private NotificationUtil mNotificationUtil = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +56,10 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(DownLoadService.ACTION_UPDATE);
         filter.addAction(DownLoadService.ACTION_FINISH);
+        filter.addAction(DownLoadService.ACTION_START);
         registerReceiver(mReceiver, filter);
+
+        mNotificationUtil = new NotificationUtil(MainActivity.this);
     }
 
     @Override
@@ -70,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
                 int finished = intent.getIntExtra("finished", 0);
                 int id = intent.getIntExtra("id", 0);
                 mAdapter.updateProgress(id, finished);
+                mNotificationUtil.updateNotification(id, finished);
             } else if (DownLoadService.ACTION_FINISH.equals(intent.getAction())) {
                 FileInfo fileInfo = (FileInfo) intent.getSerializableExtra("fileInfo");
                 mAdapter.updateProgress(fileInfo.getId(), 0);
@@ -77,6 +83,9 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this,
                         mFileList.get(fileInfo.getId()).getFileName() + "下载完成",
                         Toast.LENGTH_LONG).show();
+                mNotificationUtil.cancelNotification(fileInfo.getId());
+            } else if (DownLoadService.ACTION_START.equals(intent.getAction())) {
+                mNotificationUtil.showNotification((FileInfo) intent.getSerializableExtra("fileInfo"));
             }
         }
     };
