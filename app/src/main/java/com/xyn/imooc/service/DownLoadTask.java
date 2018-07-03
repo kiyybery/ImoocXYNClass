@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -24,22 +25,42 @@ public class DownLoadTask {
     private ThreadDAO mDao = null;
     private int mFinished = 0;
     public boolean isPause = false;
+    private int mThreadCount = 1; //线程数量
+    private List<DownLoadThread> mThreadList = null;//线程集合
 
-    public DownLoadTask(Context mContext, FileInfo mFileInfo) {
+    public DownLoadTask(Context mContext, FileInfo mFileInfo, int mThreadCount) {
         this.mContext = mContext;
         this.mFileInfo = mFileInfo;
+        this.mThreadCount = mThreadCount;
         mDao = new ThreadDAOImpl(mContext);
     }
 
     public void download() {
-        List<ThreadInfo> threadInfos = mDao.getThreads(mFileInfo.getUrl());
-        ThreadInfo threadInfo = null;
-        if (threadInfos.size() == 0) {
-            threadInfo = new ThreadInfo(0, mFileInfo.getUrl(), 0, mFileInfo.getLength(), 0);
-        } else {
-            threadInfo = threadInfos.get(0);
+        List<ThreadInfo> threads = mDao.getThreads(mFileInfo.getUrl());
+        if (threads.size() == 0) {
+            int length = mFileInfo.getLength() / mThreadCount;
+            for (int i = 0; i < mThreadCount; i++) {
+                ThreadInfo threadInfo = new ThreadInfo(i, mFileInfo.getUrl(),
+                        length * i, (i + 1) * length - 1, 0);
+                if (i == mThreadCount - 1) {
+                    threadInfo.setEnd(mFileInfo.getLength());
+                }
+                threads.add(threadInfo);
+            }
         }
-        new DownLoadThread(threadInfo).start();
+        mThreadList = new ArrayList<>();
+        for (ThreadInfo info : threads) {
+            DownLoadThread thread = new DownLoadThread(info);
+            thread.start();
+            mThreadList.add(thread);
+        }
+//        ThreadInfo threadInfo = null;
+//        if (threadInfos.size() == 0) {
+//            threadInfo = new ThreadInfo(0, mFileInfo.getUrl(), 0, mFileInfo.getLength(), 0);
+//        } else {
+//            threadInfo = threadInfos.get(0);
+//        }
+//        new DownLoadThread(threadInfo).start();
     }
 
     class DownLoadThread extends Thread {
