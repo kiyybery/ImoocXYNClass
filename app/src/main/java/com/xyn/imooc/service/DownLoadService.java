@@ -30,13 +30,16 @@ public class DownLoadService extends Service {
     public static final int MSG_INIT = 0;
     private Map<Integer, DownLoadTask> mTasks =
             new LinkedHashMap<Integer, DownLoadTask>();
+    private InitThread mInitThread = null;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (ACTION_START.equals(intent.getAction())) {
             FileInfo fileInfo = (FileInfo) intent.getSerializableExtra("fileInfo");
             Log.d("xyn", "START :" + fileInfo.toString());
-            new InitThread(fileInfo).start();
+//            new InitThread(fileInfo).start();
+            mInitThread = new InitThread(fileInfo);
+            DownLoadTask.sExecutorService.execute(mInitThread);
         } else if (ACTION_STOP.equals(intent.getAction())) {
             FileInfo fileInfo = (FileInfo) intent.getSerializableExtra("fileInfo");
             Log.d("xyn", "STOP :" + fileInfo.toString());

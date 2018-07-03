@@ -17,6 +17,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class DownLoadTask {
@@ -27,7 +29,7 @@ public class DownLoadTask {
     public boolean isPause = false;
     private int mThreadCount = 1; //线程数量
     private List<DownLoadThread> mThreadList = null;//线程集合
-
+    public static ExecutorService sExecutorService = Executors.newCachedThreadPool();
     public DownLoadTask(Context mContext, FileInfo mFileInfo, int mThreadCount) {
         this.mContext = mContext;
         this.mFileInfo = mFileInfo;
@@ -52,7 +54,8 @@ public class DownLoadTask {
         mThreadList = new ArrayList<>();
         for (ThreadInfo info : threads) {
             DownLoadThread thread = new DownLoadThread(info);
-            thread.start();
+            DownLoadTask.sExecutorService.execute(thread);
+//            thread.start();
             mThreadList.add(thread);
         }
     }
