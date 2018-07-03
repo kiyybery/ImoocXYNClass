@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (DownLoadService.ACTION_FINISH.equals(intent.getAction())) {
                 FileInfo fileInfo = (FileInfo) intent.getSerializableExtra("fileInfo");
                 mAdapter.updateProgress(fileInfo.getId(), 0);
+                Log.d("xyn", "file download finish");
                 Toast.makeText(MainActivity.this,
                         mFileList.get(fileInfo.getId()).getFileName() + "下载完成",
                         Toast.LENGTH_LONG).show();
