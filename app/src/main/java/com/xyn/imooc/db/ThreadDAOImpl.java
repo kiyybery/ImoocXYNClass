@@ -65,12 +65,12 @@ public class ThreadDAOImpl implements ThreadDAO {
     }
 
     @Override
-    public boolean isExists(String url, int thread_id) {
+    public synchronized boolean isExists(String url, int thread_id) {
         SQLiteDatabase db = mHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery("select * from thread_info where url = ? and thread_id = ?",
+        Cursor cursor1 = db.rawQuery("select * from thread_info where url = ? and thread_id = ?",
                 new String[]{url, thread_id + ""});
-        boolean exists = cursor.moveToNext();
-        cursor.close();
+        boolean exists = cursor1.moveToNext();
+        cursor1.close();
         db.close();
         return exists;
     }
