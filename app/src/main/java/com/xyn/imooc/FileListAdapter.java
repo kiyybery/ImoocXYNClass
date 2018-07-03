@@ -81,6 +81,12 @@ public class FileListAdapter extends BaseAdapter {
         return view;
     }
 
+    public void updateProgress(int id, int progress) {
+        FileInfo fileInfo = mFileList.get(id);
+        fileInfo.setFinished(progress);
+        notifyDataSetChanged();
+    }
+
     static class ViewHolder {
         TextView tvFile;
         Button btStop;

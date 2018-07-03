@@ -54,17 +54,27 @@ public class DownLoadTask {
             thread.start();
             mThreadList.add(thread);
         }
-//        ThreadInfo threadInfo = null;
-//        if (threadInfos.size() == 0) {
-//            threadInfo = new ThreadInfo(0, mFileInfo.getUrl(), 0, mFileInfo.getLength(), 0);
-//        } else {
-//            threadInfo = threadInfos.get(0);
-//        }
-//        new DownLoadThread(threadInfo).start();
+    }
+
+    /*判断所有线程都执行完毕*/
+    private synchronized void checkAllThreadsFinshed() {
+        boolean allFinished = true;
+        for (DownLoadThread thread : mThreadList) {
+            if (thread.isFinished) {
+                allFinished = false;
+                break;
+            }
+        }
+        if (allFinished) {
+            Intent intent = new Intent(DownLoadService.ACTION_FINISH);
+            intent.putExtra("fileInfo", mFileInfo);
+            mContext.sendBroadcast(intent);
+        }
     }
 
     class DownLoadThread extends Thread {
         private ThreadInfo mThreadInfo = null;
+        public boolean isFinished = false; //标识线程是否结束
 
         public DownLoadThread(ThreadInfo mThreadInfo) {
             this.mThreadInfo = mThreadInfo;
@@ -99,17 +109,23 @@ public class DownLoadTask {
                     while ((len = input.read(buffer)) != -1) {
                         raf.write(buffer, 0, len);
                         mFinished += len;
+                        mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
                         if (System.currentTimeMillis() - time > 500) {
                             time = System.currentTimeMillis();
                             intent.putExtra("finished", mFinished * 100 / mFileInfo.getLength());
+                            intent.putExtra("id", mFileInfo.getId());
                             mContext.sendBroadcast(intent);
                         }
                         if (isPause) {
-                            mDao.updateThread(mThreadInfo.getUrl(), mThreadInfo.getId(), mFinished);
+                            mDao.updateThread(mThreadInfo.getUrl(),
+                                    mThreadInfo.getId(),
+                                    mThreadInfo.getFinished());
                             return;
                         }
                     }
+                    isFinished = true;
                     mDao.deleteThread(mThreadInfo.getUrl(), mThreadInfo.getId());
+                    checkAllThreadsFinshed();
                 } else if (conn.getResponseCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
                     Log.d("xyn", "HTTP_BAD_REQUEST");
                     input = conn.getInputStream();
