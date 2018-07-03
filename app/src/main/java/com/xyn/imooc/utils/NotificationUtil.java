@@ -62,4 +62,17 @@ public class NotificationUtil {
             mNotifications.put(fileInfo.getId(), notification);
         }
     }
+
+    public void cancelNotification(int id) {
+        mNotificationManager.cancel(id);
+        mNotifications.remove(id);
+    }
+
+    public void updateNotification(int id, int progress) {
+        Notification notification = mNotifications.get(id);
+        if (notification != null) {
+            notification.contentView.setProgressBar(R.id.pbProgress, 100, progress, false);
+            mNotificationManager.notify(id, notification);
+        }
+    }
 }
